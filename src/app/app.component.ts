@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   NgcCookieConsentService,
   NgcInitializationErrorEvent, NgcInitializingEvent,
@@ -15,6 +15,8 @@ import { LocalStorageService } from 'ngx-webstorage';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
+
+
   private popupOpenSubscription!: Subscription;
   private popupCloseSubscription!: Subscription;
   private initializingSubscription!: Subscription;
@@ -29,7 +31,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const cookieConsent = this.localStorageService.retrieve('cookiePreference');
-    console.log(cookieConsent);
+    console.log('consenso individuato nel localStorage:', cookieConsent);
     // subscribe to cookieconsent observables to react to main events
     this.popupOpenSubscription = this.ccService.popupOpen$.subscribe(
       () => {
@@ -45,6 +47,7 @@ export class AppComponent implements OnInit, OnDestroy {
       (event: NgcInitializingEvent) => {
         // the cookieconsent is initilializing... Not yet safe to call methods like `NgcCookieConsentService.hasAnswered()`
         console.log(`initializing: ${JSON.stringify(event)}`);
+
       });
 
     this.initializedSubscription = this.ccService.initialized$.subscribe(
@@ -63,11 +66,11 @@ export class AppComponent implements OnInit, OnDestroy {
     this.statusChangeSubscription = this.ccService.statusChange$.subscribe(
       (event: NgcStatusChangeEvent) => {
         if (event.status === 'allow') {
-          this.analyticsService.initializeGoogleAnalytics();
+          this.analyticsService.initializeGoogleTagManager();
           this.localStorageService.store('cookiePreference', 'allow');
         }
         if (event.status === 'deny') {
-          this.analyticsService.disableGoogleAnalytics();
+          this.analyticsService.disableGoogleTagManager();
           this.localStorageService.store('cookiePreference', 'deny');
         }
       }
@@ -85,13 +88,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
     if (cookieConsent) {
       console.log('consenso già dato non far apparire il popup');
-      this.ccService.fadeOut();
+      this.ccService.fadeOut() //XXX non esiste un sistema dalla libreria per fare lo start del pop-up già minimizzato (il fadeout lo rimuove totalmente)
     }
     if (cookieConsent === 'allow') {
-      this.analyticsService.initializeGoogleAnalytics();
+      this.analyticsService.initializeGoogleTagManager();
     }
     if (cookieConsent === 'deny') {
-      this.analyticsService.disableGoogleAnalytics();
+      this.analyticsService.disableGoogleTagManager();
     }
   }
 

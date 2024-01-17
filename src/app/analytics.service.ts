@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { NgcCookieConsentService } from 'ngx-cookieconsent';
 import { LocalStorageService } from 'ngx-webstorage';
 import { ReplaySubject } from 'rxjs';
 
@@ -14,19 +15,21 @@ export interface AnalyticsEvent {
 })
 export class AnalyticsService {
 
-  constructor(private localStorageService: LocalStorageService) {
+  constructor(private localStorageService: LocalStorageService, private ccService: NgcCookieConsentService) {
   }
 
-  public initializeGoogleAnalytics() {
-    console.log('inizializzo google analytics');
-    // Asserzione di tipo per 'ga' come qualsiasi funzione
-    const ga = (window as any)['ga'];
+  public initializeGoogleTagManager() {
+    console.log('Inizializzo Google Tag Manager');
+    const gtmId = 'GTM-XXXXXX'; // Sostituisci con il tuo ID container di GTM
 
-    if (ga) return; // Se Google Analytics è già stato inizializzato, non fare nulla
+    if ((window as any)['google_tag_manager'] && (window as any)['google_tag_manager'][gtmId]) {
+      // GTM è già stato caricato, non fare nulla
+      return;
+    }
 
-    // Carica lo script di Google Analytics
+    // Carica lo script di Google Tag Manager
     const script = document.createElement('script');
-    script.src = 'https://www.google-analytics.com/analytics.js';
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${gtmId}`;
     document.head.appendChild(script);
 
     const savedPreferences = this.localStorageService.retrieve('cookiePreference');
@@ -40,23 +43,22 @@ export class AnalyticsService {
       //   // Aggiungi altre condizioni per funzionali e advertising
       // }
       script.onload = () => {
-        // Inizializza Google Analytics
-        (window as any)['ga']('create', 'UA-XXXXX-Y', 'auto'); // Sostituisci 'UA-XXXXX-Y' con il tuo ID di tracciamento
-        (window as any)['ga']('set', 'anonymizeIp', true); // Opzionale: anonimizza l'indirizzo IP dell'utente
-        (window as any)['ga']('send', 'pageview');
+        console.log('Script di Google Tag Manager caricato');
       };
 
       script.onerror = () => {
-        console.error('Script di Google Analytics non caricato');
+        console.error('Script di Google Tag Manager non caricato');
       };
     }
   }
 
-  public disableGoogleAnalytics() {
-    console.log('disabilito google analytics');
-    const ga = (window as any)['ga'];
-    if (ga) {
-      ga('set', 'sendHitTask', null); // disabilita l'invio di dati a GA
-    }
+  public disableGoogleTagManager() {
+
+    console.log('Disabilito Google Analytics attraverso GTM');
+    (window as any)['dataLayer'] = (window as any)['dataLayer'] || [];
+    (window as any)['dataLayer'].push({
+      'event': 'cookieConsentUpdate',
+      'analyticsConsent': false
+    });
   }
 }
