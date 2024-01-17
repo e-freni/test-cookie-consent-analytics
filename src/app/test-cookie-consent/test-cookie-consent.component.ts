@@ -6,11 +6,22 @@ import { NgcCookieConsentService } from 'ngx-cookieconsent';
   templateUrl: './test-cookie-consent.component.html',
   styleUrls: ['./test-cookie-consent.component.css']
 })
-export class TestCookieConsentComponent  {
+export class TestCookieConsentComponent {
+  //TODO questo componente non è usato per ora, è una prova di modale da aprire per i consensi, ma attualmente è oscurata
 
-  constructor(private cookieConsentService: NgcCookieConsentService) {
+  preferences = {
+    performance: false,
+    functional: false,
+    advertising: false
+  };
+
+  savePreferences() {
+    // Salva le preferenze dell'utente
+    // Ad esempio, puoi salvarle in localStorage
+
+    localStorage.setItem('cookiePreferences', JSON.stringify(this.preferences));
+    // Qui puoi anche chiamare la logica per abilitare/disabilitare Google Analytics
   }
-
 
 
 }

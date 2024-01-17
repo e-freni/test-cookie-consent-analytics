@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgcCookieConsentConfig, NgcCookieConsentModule } from 'ngx-cookieconsent';
+import { NgxWebstorageModule } from 'ngx-webstorage';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -16,14 +17,16 @@ const cookieConfig: NgcCookieConsentConfig = {
   "palette": {
     "popup": {
       "background": "#000000",
-      "text": "#ffffff"
+      "text": "#ffffff",
+      "link": "#ffffff"
     },
     "button": {
       "background": "#f1d600",
-      "text": "#000000"
+      "text": "#000000",
+      "border": "transparent"
     }
   },
-  "type": "info",
+  "type": "opt-in",
   "content": {
     "message": "This website uses cookies to ensure you get the best experience on our website.",
     "dismiss": "Got it!",
@@ -44,6 +47,10 @@ const cookieConfig: NgcCookieConsentConfig = {
     BrowserModule,
     AppRoutingModule,
     NgcCookieConsentModule.forRoot(cookieConfig),
+    NgxWebstorageModule.forRoot({
+      prefix: 'test',
+      separator: '_'
+    }),
     FormsModule,
   ],
   providers: [],

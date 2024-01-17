@@ -1,1 +1,9 @@
-<p>Hello!</p>
+<div class="cookie-preferences-modal">
+  <h2>Impostazioni dei Cookie</h2>
+  <label>
+    <input type="checkbox" [(ngModel)]="preferences.performance">
+    Cookie di Performance
+  </label>
+  <!-- Aggiungi altre categorie qui -->
+  <button (click)="savePreferences()">Salva Preferenze</button>
+</div>

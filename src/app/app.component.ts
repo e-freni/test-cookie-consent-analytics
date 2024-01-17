@@ -6,13 +6,15 @@ import {
   NgcStatusChangeEvent
 } from 'ngx-cookieconsent';
 import { Subscription } from 'rxjs';
+import { AnalyticsService } from './analytics.service';
+import { LocalStorageService } from 'ngx-webstorage';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit, OnDestroy{
+export class AppComponent implements OnInit, OnDestroy {
   private popupOpenSubscription!: Subscription;
   private popupCloseSubscription!: Subscription;
   private initializingSubscription!: Subscription;
@@ -22,9 +24,12 @@ export class AppComponent implements OnInit, OnDestroy{
   private revokeChoiceSubscription!: Subscription;
   private noCookieLawSubscription!: Subscription;
 
-  constructor(private ccService: NgcCookieConsentService){}
+  constructor(private ccService: NgcCookieConsentService, private analyticsService: AnalyticsService, private localStorageService: LocalStorageService) {
+  }
 
   ngOnInit() {
+    const cookieConsent = this.localStorageService.retrieve('cookiePreference');
+    console.log(cookieConsent);
     // subscribe to cookieconsent observables to react to main events
     this.popupOpenSubscription = this.ccService.popupOpen$.subscribe(
       () => {
@@ -57,8 +62,16 @@ export class AppComponent implements OnInit, OnDestroy{
 
     this.statusChangeSubscription = this.ccService.statusChange$.subscribe(
       (event: NgcStatusChangeEvent) => {
-        // you can use this.ccService.getConfig() to do stuff...
-      });
+        if (event.status === 'allow') {
+          this.analyticsService.initializeGoogleAnalytics();
+          this.localStorageService.store('cookiePreference', 'allow');
+        }
+        if (event.status === 'deny') {
+          this.analyticsService.disableGoogleAnalytics();
+          this.localStorageService.store('cookiePreference', 'deny');
+        }
+      }
+    );
 
     this.revokeChoiceSubscription = this.ccService.revokeChoice$.subscribe(
       () => {
@@ -69,6 +82,17 @@ export class AppComponent implements OnInit, OnDestroy{
       (event: NgcNoCookieLawEvent) => {
         // you can use this.ccService.getConfig() to do stuff...
       });
+
+    if (cookieConsent) {
+      console.log('consenso già dato non far apparire il popup');
+      this.ccService.fadeOut();
+    }
+    if (cookieConsent === 'allow') {
+      this.analyticsService.initializeGoogleAnalytics();
+    }
+    if (cookieConsent === 'deny') {
+      this.analyticsService.disableGoogleAnalytics();
+    }
   }
 
   ngOnDestroy() {
